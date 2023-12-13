@@ -1,0 +1,1 @@
+aws kms list-keys --query 'Keys[*].KeyId' --output text | xargs -n1 -I{} aws kms list-resource-tags --key-id {} --output json | jq -r 'select(.Tags[] | select(.TagKey == "KEY_OWNER" and .TagValue == "CRAIG")).KeyId'
