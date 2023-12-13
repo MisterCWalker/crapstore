@@ -1,29 +1,37 @@
 const AWS = require('aws-sdk');
-AWS.config.update({ region: 'eu-west-2' }); // Set your region
+AWS.config.update({ region: 'us-west-2' }); // Set your region
 
 const kms = new AWS.KMS();
 
+async function listAllKeys() {
+    let allKeys = [];
+    let marker;
+    do {
+        const params = marker ? { Marker: marker } : {};
+        const response = await kms.listKeys(params).promise();
+        allKeys = allKeys.concat(response.Keys);
+        marker = response.NextMarker;
+    } while (marker);
+
+    return allKeys;
+}
+
 async function getKeysWithTagAndValue(tagKey, tagValue) {
-    let keysWithTagAndValue = [];
+    let keyIdsWithTagAndValue = [];
+    const keys = await listAllKeys();
 
-    // List all keys
-    const keys = await kms.listKeys().promise();
-
-    for (let key of keys.Keys) {
-        // For each key, list its tags
+    for (let key of keys) {
         const tags = await kms.listResourceTags({ KeyId: key.KeyId }).promise();
-
-        // Check if the key has the specified tag with the specified value
         if (tags.Tags.some(tag => tag.TagKey === tagKey && tag.TagValue === tagValue)) {
-            keysWithTagAndValue.push(key);
+            keyIdsWithTagAndValue.push(key.KeyId);
         }
     }
 
-    return keysWithTagAndValue;
+    return keyIdsWithTagAndValue;
 }
 
-getKeysWithTagAndValue('MY_UNIQUE_TAG', '98aujwd9j').then(keys => {
-    console.log('Keys with MY_UNIQUE_TAG = 98aujwd9j:', keys);
+getKeysWithTagAndValue('MY_UNIQUE_TAG', '98aujwd9j').then(keyIds => {
+    console.log('Key IDs with MY_UNIQUE_TAG = 98aujwd9j:', keyIds);
 }).catch(error => {
     console.error('Error:', error);
 });
