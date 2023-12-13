@@ -3,8 +3,8 @@ AWS.config.update({ region: 'eu-west-2' }); // Set your region
 
 const kms = new AWS.KMS();
 
-async function getKeysWithTag(tagKey) {
-    let keysWithTag = [];
+async function getKeysWithTagAndValue(tagKey, tagValue) {
+    let keysWithTagAndValue = [];
 
     // List all keys
     const keys = await kms.listKeys().promise();
@@ -13,17 +13,17 @@ async function getKeysWithTag(tagKey) {
         // For each key, list its tags
         const tags = await kms.listResourceTags({ KeyId: key.KeyId }).promise();
 
-        // Check if the key has the specified tag
-        if (tags.Tags.some(tag => tag.TagKey === tagKey)) {
-            keysWithTag.push(key);
+        // Check if the key has the specified tag with the specified value
+        if (tags.Tags.some(tag => tag.TagKey === tagKey && tag.TagValue === tagValue)) {
+            keysWithTagAndValue.push(key);
         }
     }
 
-    return keysWithTag;
+    return keysWithTagAndValue;
 }
 
-getKeysWithTag('MY_UNIQUE_TAG').then(keys => {
-    console.log('Keys with MY_UNIQUE_TAG:', keys);
+getKeysWithTagAndValue('MY_UNIQUE_TAG', '98aujwd9j').then(keys => {
+    console.log('Keys with MY_UNIQUE_TAG = 98aujwd9j:', keys);
 }).catch(error => {
     console.error('Error:', error);
 });
