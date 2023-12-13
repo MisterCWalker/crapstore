@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-AWS.config.update({ region: 'us-west-2' }); // Set your region
+AWS.config.update({ region: 'eu-west-2' }); // Setting the region to eu-west-2
 
 const kms = new AWS.KMS();
 
@@ -16,22 +16,22 @@ async function listAllKeys() {
     return allKeys;
 }
 
-async function getKeysWithTagAndValue(tagKey, tagValue) {
-    let keyIdsWithTagAndValue = [];
+async function getKeysWithTagValue(tagKey, tagValue) {
+    let keyIdsWithTagValue = [];
     const keys = await listAllKeys();
 
     for (let key of keys) {
         const tags = await kms.listResourceTags({ KeyId: key.KeyId }).promise();
         if (tags.Tags.some(tag => tag.TagKey === tagKey && tag.TagValue === tagValue)) {
-            keyIdsWithTagAndValue.push(key.KeyId);
+            keyIdsWithTagValue.push(key.KeyId);
         }
     }
 
-    return keyIdsWithTagAndValue;
+    return keyIdsWithTagValue;
 }
 
-getKeysWithTagAndValue('MY_UNIQUE_TAG', '98aujwd9j').then(keyIds => {
-    console.log('Key IDs with MY_UNIQUE_TAG = 98aujwd9j:', keyIds);
+getKeysWithTagValue('KEY_OWNER', 'CRAIG').then(keyIds => {
+    console.log('Key IDs with KEY_OWNER = CRAIG:', keyIds);
 }).catch(error => {
     console.error('Error:', error);
 });
