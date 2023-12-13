@@ -21,9 +21,15 @@ async function getKeysWithTagValue(tagKey, tagValue) {
     const keys = await listAllKeys();
 
     for (let key of keys) {
-        const tags = await kms.listResourceTags({ KeyId: key.KeyId }).promise();
-        if (tags.Tags.some(tag => tag.TagKey === tagKey && tag.TagValue === tagValue)) {
-            keyIdsWithTagValue.push(key.KeyId);
+        try {
+            const tags = await kms.listResourceTags({ KeyId: key.KeyId }).promise();
+            if (tags.Tags.some(tag => tag.TagKey === tagKey && tag.TagValue === tagValue)) {
+                keyIdsWithTagValue.push(key.KeyId);
+            }
+        } catch (error) {
+            console.error(`Error fetching tags for key ${key.KeyId}:`, error.message);
+            // Optionally log the error or take other actions
+            // Continue to the next key
         }
     }
 
